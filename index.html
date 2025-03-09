@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>3D PAPÁ</title>
+
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+        <script src="https://cdn.babylonjs.com/recast.js"></script>
+        <script src="https://cdn.babylonjs.com/ammo.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/cannon.js"></script>
+        <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/addons/babylonjs.addons.min.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html,
+            body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+        <script>
+
+function createDefautlEnv(
+  scene,
+  distancia = 1000,
+  path ='./a.env' 
+) {
+  scene.createDefaultSkybox(
+    new BABYLON.CubeTexture(path, scene),
+    true,
+    distancia
+  );
+  scene.lights.forEach(luz => {
+    luz.intensity = 0.5;
+  });
+}
+                    var canvas = document.getElementById("renderCanvas");
+
+                    var startRenderLoop = function (engine, canvas) {
+                        engine.runRenderLoop(function () {
+                            if (sceneToRender && sceneToRender.activeCamera) {
+                                sceneToRender.render();
+                            }
+                        });
+                    }
+
+                    var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        var createScene =  function () {
+            var scene = new BABYLON.Scene(engine);
+            var camera = new BABYLON.ArcRotateCamera("camera1", 0, Math.PI / 2, 12, BABYLON.Vector3.Zero(), scene);
+        
+            camera.lowerRadiusLimit =2;
+            camera.upperRadiusLimit = 20;
+        
+            camera.attachControl(canvas, true);
+        
+ 
+  
+              BABYLON.SceneLoader.ImportMeshAsync("", "./", "miPapamehs3d.glb", scene).then((result) => {
+              
+
+
+                const luzDireccional = crearLuzDireccional(
+            scene,
+            new BABYLON.Vector3(0, 10, 0), 
+            new BABYLON.Vector3(0,-0.05, -1),  
+            {
+                colorEspecular: new BABYLON.Color3(1, 0.8, 0.5),  
+                energia:2.5,  
+                sombras: true,  
+                radioSombras: 200, 
+            }
+        );
+
+
+         
+ 
+});;
+
+ 
+
+            createDefautlEnv(scene);
+            return scene;
+        
+        }; 
+        function crearLuzDireccional(escena, posicion, direccion, opciones = {}) {
+            const {
+                colorEspecular = new BABYLON.Color3(1, 1, 1),
+                energia = 1.0,
+                sombras = true,
+                radioSombras = 100,
+            } = opciones;
+
+            const luz = new BABYLON.DirectionalLight("luzDireccional", direccion, escena);
+            luz.position = posicion;
+            luz.diffuse = new BABYLON.Color3(1, 1, 1);
+            luz.specular = colorEspecular;
+            luz.intensity = energia;
+
+            if (sombras) {
+                const generadorSombras = new BABYLON.ShadowGenerator(1024, luz);
+                generadorSombras.useBlurExponentialShadowMap = true;
+                generadorSombras.blurKernel = 32;
+                luz.shadowEnabled = true;
+                luz.shadowMinZ = -radioSombras;
+                luz.shadowMaxZ = radioSombras;
+            }
+
+            return luz;
+        }
+        function crearLuzConInspector(escena, posicion, opciones = {}) {
+ 
+    const {
+        colorEspecular = new BABYLON.Color3(1, 1, 1),  
+        energia = 1.0,  
+        sombras = true,  
+        radioSombras = 100, 
+    } = opciones;
+
+    
+    const luz = new BABYLON.PointLight("luzBombillo", posicion, escena);
+
+  
+    luz.diffuse = new BABYLON.Color3(1, 1, 1); 
+    luz.specular = colorEspecular;  
+    luz.intensity = energia;  
+
+    
+    if (sombras) {
+        const generadorSombras = new BABYLON.ShadowGenerator(1024, luz);  
+        generadorSombras.useBlurExponentialShadowMap = true;  
+        generadorSombras.blurKernel = 32; 
+        luz.shadowEnabled = true;  
+        luz.radius = radioSombras; 
+    }
+
+  
+   
+    luz.radius =800;
+    return luz;  
+}
+
+function habilitarInspector(escena) {
+    
+    escena.debugLayer.show({
+        embedMode: true, 
+    }).then(() => {
+        console.log("Inspector habilitado. Presiona 'Ctrl + Alt + I' para abrirlo.");
+    }).catch((error) => {
+        console.error("No se pudo cargar el Inspector:", error);
+    });
+}
+
+
+
+
+
+
+                window.initFunction = async function() {
+                    
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+                    
+                    
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene
+                    });
+
+                
+                    window.addEventListener("resize", function () {
+                        engine.resize();
+                    });
+        </script>
+    </body>
+</html>
